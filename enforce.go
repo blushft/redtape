@@ -40,54 +40,12 @@ func (e *enforcer) Enforce(r *Request) error {
 	}
 
 	for _, p := range pol {
-		// match actions
-		am, err := e.matcher.MatchPolicy(p, p.Actions(), r.Action)
+		match, err := e.evalPolicy(r, p)
 		if err != nil {
 			return err
 		}
 
-		if !am {
-			continue
-		}
-
-		rm := false
-		// match roles
-		for _, role := range p.Roles() {
-			b, err := e.matcher.MatchRole(role, r.Role)
-			if err != nil {
-				return err
-			}
-
-			if b {
-				rm = true
-				break
-			}
-		}
-
-		if !rm {
-			continue
-		}
-
-		// match resources
-		resm, err := e.matcher.MatchPolicy(p, p.Resources(), r.Resource)
-		if err != nil {
-			return err
-		}
-		if !resm {
-			continue
-		}
-
-		// match scopes
-		scm, err := e.matcher.MatchPolicy(p, p.Scopes(), r.Scope)
-		if err != nil {
-			return err
-		}
-		if !scm {
-			continue
-		}
-
-		// check all conditions
-		if !e.checkConditions(p, r) {
+		if !match {
 			continue
 		}
 
@@ -117,4 +75,59 @@ func (e *enforcer) checkConditions(p Policy, r *Request) bool {
 	}
 
 	return true
+}
+
+func (e *enforcer) evalPolicy(r *Request, p Policy) (bool, error) {
+	// match actions
+	am, err := e.matcher.MatchPolicy(p, p.Actions(), r.Action)
+	if err != nil {
+		return false, err
+	}
+
+	if !am {
+		return false, nil
+	}
+
+	rm := false
+	// match roles
+	for _, role := range p.Roles() {
+		b, err := e.matcher.MatchRole(role, r.Role)
+		if err != nil {
+			return false, err
+		}
+
+		if b {
+			rm = true
+			break
+		}
+	}
+
+	if !rm {
+		return false, nil
+	}
+
+	// match resources
+	resm, err := e.matcher.MatchPolicy(p, p.Resources(), r.Resource)
+	if err != nil {
+		return false, err
+	}
+	if !resm {
+		return false, nil
+	}
+
+	// match scopes
+	scm, err := e.matcher.MatchPolicy(p, p.Scopes(), r.Scope)
+	if err != nil {
+		return false, err
+	}
+	if !scm {
+		return false, nil
+	}
+
+	// check all conditions
+	if !e.checkConditions(p, r) {
+		return false, nil
+	}
+
+	return true, nil
 }

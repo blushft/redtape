@@ -45,7 +45,7 @@ func NewErrRequestDeniedExplicit(err error) error {
 		error:  err,
 		code:   http.StatusForbidden,
 		status: http.StatusText(http.StatusForbidden),
-		reason: "request denied because a policy explicity forbids it",
+		reason: "request denied because a policy explicitly forbids it",
 	})
 }
 

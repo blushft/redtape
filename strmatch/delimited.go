@@ -6,6 +6,7 @@ import (
 	"regexp"
 )
 
+// ExtractDelimited returns a slice of values found between the given start and end delimiters
 func ExtractDelimited(s string, delimStart, delimEnd rune) ([]string, error) {
 	idxs, err := delimIndices(s, delimStart, delimEnd)
 	if err != nil {
@@ -28,6 +29,7 @@ func ExtractDelimited(s string, delimStart, delimEnd rune) ([]string, error) {
 	return matches, nil
 }
 
+// ComileDelimitedRegex returns compiled regex for all values found between the give start and end delimiters
 func CompileDelimitedRegex(s string, delimStart, delimEnd rune) (*regexp.Regexp, error) {
 	idxs, err := delimIndices(s, delimStart, delimEnd)
 	if err != nil {

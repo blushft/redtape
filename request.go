@@ -30,7 +30,7 @@ func (r *Request) Metadata() RequestMetadata {
 // RequestMetadata is a helper type to allow type safe retrieval
 type RequestMetadata map[string]interface{}
 
-// RequestMetadataKey is a type to identify RequestMetadata embeded in context
+// RequestMetadataKey is a type to identify RequestMetadata embedded in context
 type RequestMetadataKey struct{}
 
 // NewRequestContext builds a context object from an existing context, embedding request metadata. If nil

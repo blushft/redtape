@@ -78,7 +78,7 @@ func NewPolicy(opts ...PolicyOption) (Policy, error) {
 	return p, nil
 }
 
-// MustNewPolicy returns a default policy implimenation or panics on error
+// MustNewPolicy returns a default policy implementation or panics on error
 func MustNewPolicy(opts ...PolicyOption) Policy {
 	p, err := NewPolicy(opts...)
 
@@ -89,7 +89,7 @@ func MustNewPolicy(opts ...PolicyOption) Policy {
 	return p
 }
 
-// MarshalJSON returns a JSON byte slice representation of the default policy implimentation
+// MarshalJSON returns a JSON byte slice representation of the default policy implementation
 func (p *policy) MarshalJSON() ([]byte, error) {
 	opts := PolicyOptions{
 		Name:        p.id,
