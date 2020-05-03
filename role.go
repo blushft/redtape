@@ -9,6 +9,7 @@ const (
 	maxIterDepth = 10
 )
 
+// Role represents a named association to a set of permissionable capability
 type Role struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
@@ -16,6 +17,7 @@ type Role struct {
 	Roles       []*Role `json:"roles"`
 }
 
+// NewRole returns a Role configured with the provided options
 func NewRole(id, name, desc string, roles ...*Role) *Role {
 	return &Role{
 		ID:          id,
@@ -25,6 +27,7 @@ func NewRole(id, name, desc string, roles ...*Role) *Role {
 	}
 }
 
+// AddRole adds a subrole
 func (r *Role) AddRole(role *Role) error {
 	if r.ID == role.ID {
 		return fmt.Errorf("sub role id %s cannot match parent", role.ID)
@@ -61,10 +64,12 @@ func getEffectiveRoles(r *Role, iter int) ([]*Role, error) {
 	return er, nil
 }
 
+// EffectiveRoles returns a flattened slice of all roles embedded in the Role
 func (r *Role) EffectiveRoles() ([]*Role, error) {
 	return getEffectiveRoles(r, 0)
 }
 
+// RoleManager provides methods to store and retrieve role sets
 type RoleManager struct {
 	Roles []Role
 }

@@ -1,6 +1,7 @@
 package redtape
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
@@ -36,7 +37,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 		actions    []string
 		conditions Conditions
 		effect     PolicyEffect
-		ctx        PolicyContext
+		ctx        context.Context
 	}
 	tests := []struct {
 		name    string
@@ -61,7 +62,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 				conditions: newConditions(),
 				effect:     PolicyEffectAllow,
 			},
-			want:    nil,
+			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"Test","description":"Testing","roles":null}],"resources":["test_res"],"actions":["test_action"],"conditions":[{"name":"office-ip","type":"ip_whitelist","options":{"networks":["192.168.1.0/24"]}}],"effect":"","context":{"metadata":null,"scopes":null}}`),
 			wantErr: false,
 		},
 	}

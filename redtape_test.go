@@ -1,7 +1,6 @@
 package redtape
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -146,12 +145,9 @@ func (s *RedtapeSuite) TestCEnforce() {
 		Resource: "test_resource",
 		Action:   "test",
 		Role:     "test.A",
-		Context: RequestContext{
-			Context: context.Background(),
-			Metadata: map[string]interface{}{
-				"match_me": true,
-			},
-		},
+		Context: NewRequestContext(nil, map[string]interface{}{
+			"match_me": true,
+		}),
 	}
 
 	err = e.Enforce(req)

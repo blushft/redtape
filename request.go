@@ -2,42 +2,62 @@ package redtape
 
 import "context"
 
-type RequestContext struct {
-	Metadata map[string]interface{}
-	Context  context.Context
-}
-
-func (rc RequestContext) getKey(k string) interface{} {
-	if v, ok := rc.Metadata[k]; ok {
-		return v
-	}
-
-	if v := rc.Context.Value(k); v != nil {
-		return v
-	}
-
-	return nil
-}
-
+// Request represents a request to be matched against a policy set
 type Request struct {
-	Resource string         `json:"resource"`
-	Action   string         `json:"action"`
-	Role     string         `json:"subject"`
-	Context  RequestContext `json:"-"`
+	Resource string          `json:"resource"`
+	Action   string          `json:"action"`
+	Role     string          `json:"subject"`
+	Scope    string          `json:"scope"`
+	Context  context.Context `json:"-"`
 }
 
-func NewRequest(ctx context.Context, res, action, role string, meta map[string]interface{}) *Request {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-
+// NewRequest builds a request from the provided parameters
+func NewRequest(ctx context.Context, res, action, role, scope string, meta map[string]interface{}) *Request {
 	return &Request{
 		Resource: res,
 		Action:   action,
 		Role:     role,
-		Context: RequestContext{
-			Context:  ctx,
-			Metadata: meta,
-		},
+		Scope:    scope,
+		Context:  NewRequestContext(ctx, meta),
 	}
+}
+
+// Metadata returns metadata stored in context or an empty set
+func (r *Request) Metadata() RequestMetadata {
+	return RequestMetadataFromContext(r.Context)
+}
+
+// RequestMetadata is a helper type to allow type safe retrieval
+type RequestMetadata map[string]interface{}
+
+// RequestMetadataKey is a type to identify RequestMetadata embeded in context
+type RequestMetadataKey struct{}
+
+// NewRequestContext builds a context object from an existing context, embedding request metadata. If nil
+// values are provided to both arguments, new values are created or returned
+func NewRequestContext(ctx context.Context, meta map[string]interface{}) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	if meta != nil {
+		ctx = context.WithValue(ctx, RequestMetadataKey{}, RequestMetadata(meta))
+	}
+
+	return ctx
+}
+
+// RequestMetadataFromContext extracts RequestMetadata from a given context or returns an empty metadata set
+func RequestMetadataFromContext(ctx context.Context) RequestMetadata {
+	if ctx == nil {
+		return RequestMetadata{}
+	}
+
+	md := ctx.Value(RequestMetadataKey{})
+
+	if md == nil {
+		return RequestMetadata{}
+	}
+
+	return md.(RequestMetadata)
 }

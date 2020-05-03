@@ -8,14 +8,7 @@ import (
 
 func NewHTTPMiddlware(e redtape.Enforcer, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := &redtape.Request{
-			Action:   r.Method,
-			Resource: r.URL.Path,
-			Context: redtape.RequestContext{
-				Context:  r.Context(),
-				Metadata: requestMetadata(r),
-			},
-		}
+		req := redtape.NewRequest(r.Context(), r.URL.Path, r.Method, "", "", requestMetadata(r))
 
 		if err := e.Enforce(req); err != nil {
 			http.Error(w, err.Error(), http.StatusForbidden)
@@ -27,6 +20,7 @@ func NewHTTPMiddlware(e redtape.Enforcer, h http.Handler) http.Handler {
 }
 
 func requestMetadata(r *http.Request) map[string]interface{} {
+
 	return map[string]interface{}{
 		"referer":    r.Referer,
 		"cookies":    r.Cookies(),

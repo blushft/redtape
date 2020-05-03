@@ -6,6 +6,7 @@ import (
 	"sync"
 )
 
+// PolicyManager contains methods to allow query, update, and removal of policies
 type PolicyManager interface {
 	Create(Policy) error
 	Update(Policy) error
@@ -16,6 +17,7 @@ type PolicyManager interface {
 	FindByRequest(*Request) ([]Policy, error)
 	FindByRole(string) ([]Policy, error)
 	FindByResource(string) ([]Policy, error)
+	FindByScope(string) ([]Policy, error)
 }
 
 type defaultManager struct {
@@ -23,12 +25,14 @@ type defaultManager struct {
 	mu       sync.RWMutex
 }
 
+// NewManager returns a default memory backed policy manager
 func NewManager() PolicyManager {
 	return &defaultManager{
 		policies: make(map[string]Policy),
 	}
 }
 
+// Create adds a policy to the manager
 func (m *defaultManager) Create(p Policy) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -42,6 +46,7 @@ func (m *defaultManager) Create(p Policy) error {
 	return nil
 }
 
+// Update replaces a named policy with the provided policy
 func (m *defaultManager) Update(p Policy) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -51,6 +56,7 @@ func (m *defaultManager) Update(p Policy) error {
 	return nil
 }
 
+// Get retrieves a policy by id or error if one does not exist
 func (m *defaultManager) Get(id string) (Policy, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -63,6 +69,7 @@ func (m *defaultManager) Get(id string) (Policy, error) {
 	return p, nil
 }
 
+// Delete removes a policy by id
 func (m *defaultManager) Delete(id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -71,6 +78,7 @@ func (m *defaultManager) Delete(id string) error {
 	return nil
 }
 
+// All returns a slice containing all policies
 func (m *defaultManager) All(limit int, offset int) ([]Policy, error) {
 	m.mu.RLock()
 
@@ -106,15 +114,23 @@ func (m *defaultManager) findAll() ([]Policy, error) {
 	return ps, nil
 }
 
+// FindByRequest returns all policies matching a Request
 func (m *defaultManager) FindByRequest(r *Request) ([]Policy, error) {
 	return m.findAll()
 }
 
+// FindByRole returns all policies matching a Role
 func (m *defaultManager) FindByRole(_ string) ([]Policy, error) {
 	return m.findAll()
 }
 
+// FindByResource returns all policies matching a Resource
 func (m *defaultManager) FindByResource(_ string) ([]Policy, error) {
+	return m.findAll()
+}
+
+// FindByResource returns all policies matching a Resource
+func (m *defaultManager) FindByScope(_ string) ([]Policy, error) {
 	return m.findAll()
 }
 

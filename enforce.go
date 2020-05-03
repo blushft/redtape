@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Enforcer interface provides methods to enforce policies against a request
 type Enforcer interface {
 	Enforce(*Request) error
 }
@@ -15,6 +16,7 @@ type enforcer struct {
 	auditor Auditor
 }
 
+// NewEnforcer returns a default Enforcer combining a PolicyManager, Matcher, and Auditor
 func NewEnforcer(manager PolicyManager, matcher Matcher, auditor Auditor) (Enforcer, error) {
 	return &enforcer{
 		manager: manager,
@@ -23,6 +25,11 @@ func NewEnforcer(manager PolicyManager, matcher Matcher, auditor Auditor) (Enfor
 	}, nil
 }
 
+// Enforce fulfills the Enforce method of Enforcer. The default implementation matches the Request against
+// the range of stored Policies and evaluating each.
+// Polices are matched first by Action, then Role, Resource, Scope and finally Condition. If a match is found, the
+// configured Policy Effect is applied.
+// TODO: return explicit PolicyEffect and use error to indicate processing failures
 func (e *enforcer) Enforce(r *Request) error {
 	allow := false
 	matched := []Policy{}
@@ -70,6 +77,15 @@ func (e *enforcer) Enforce(r *Request) error {
 			continue
 		}
 
+		// match scopes
+		scm, err := e.matcher.MatchPolicy(p, p.Scopes(), r.Scope)
+		if err != nil {
+			return err
+		}
+		if !scm {
+			continue
+		}
+
 		// check all conditions
 		if !e.checkConditions(p, r) {
 			continue
@@ -79,14 +95,14 @@ func (e *enforcer) Enforce(r *Request) error {
 
 		// deny overrides all
 		if p.Effect() == PolicyEffectDeny {
-			return NewErrRequestDenied(fmt.Errorf("access denied by policy %s", p.ID()))
+			return NewErrRequestDeniedExplicit(fmt.Errorf("access denied by policy %s", p.ID()))
 		}
 
 		allow = true
 	}
 
-	if !allow {
-		return NewErrRequestDenied(errors.New("access denied because no policy allowed access"))
+	if !allow && DefaultPolicyEffect == PolicyEffectDeny {
+		return NewErrRequestDeniedImplicit(errors.New("access denied because no policy allowed access"))
 	}
 
 	return nil
@@ -94,7 +110,8 @@ func (e *enforcer) Enforce(r *Request) error {
 
 func (e *enforcer) checkConditions(p Policy, r *Request) bool {
 	for key, cond := range p.Conditions() {
-		if pass := cond.Meets(r.Context.getKey(key), r); !pass {
+		meta := RequestMetadataFromContext(r.Context)
+		if pass := cond.Meets(meta[key], r); !pass {
 			return false
 		}
 	}
