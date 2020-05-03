@@ -97,6 +97,7 @@ func (p *policy) MarshalJSON() ([]byte, error) {
 		Roles:       p.roles,
 		Resources:   p.resources,
 		Actions:     p.actions,
+		Effect:      string(p.effect),
 	}
 
 	var copts []ConditionOptions
@@ -169,7 +170,7 @@ type PolicyOptions struct {
 	Scopes      []string           `json:"scopes"`
 	Conditions  []ConditionOptions `json:"conditions"`
 	Effect      string             `json:"effect"`
-	Context     context.Context    `json:"context"`
+	Context     context.Context    `json:"-"`
 }
 
 // PolicyOption is a typed function allowing updates to PolicyOptions through functional options

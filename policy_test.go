@@ -62,7 +62,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 				conditions: newConditions(),
 				effect:     PolicyEffectAllow,
 			},
-			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"Test","description":"Testing","roles":null}],"resources":["test_res"],"actions":["test_action"],"conditions":[{"name":"office-ip","type":"ip_whitelist","options":{"networks":["192.168.1.0/24"]}}],"effect":"","context":{"metadata":null,"scopes":null}}`),
+			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"Test","description":"Testing","roles":null}],"resources":["test_res"],"actions":["test_action"],"scopes":null,"conditions":[{"name":"office-ip","type":"ip_whitelist","options":{"networks":["192.168.1.0/24"]}}],"effect":"allow"}`),
 			wantErr: false,
 		},
 	}
@@ -84,7 +84,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("policy.MarshalJSON() = %s, want %v", got, tt.want)
+				t.Errorf("policy.MarshalJSON() = \n%s, want \n%s", got, tt.want)
 			}
 		})
 	}
