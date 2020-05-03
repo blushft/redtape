@@ -70,6 +70,13 @@ func (r *Role) EffectiveRoles() ([]*Role, error) {
 }
 
 // RoleManager provides methods to store and retrieve role sets
-type RoleManager struct {
-	Roles []Role
+type RoleManager interface {
+	Create(Role) error
+	Update(Role) error
+	Get(string) (*Role, error)
+	GetByName(string) (*Role, error)
+	Delete(string) error
+	All(limit, offset int) ([]Role, error)
+
+	GetMatching(string) ([]Role, error)
 }
