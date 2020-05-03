@@ -15,12 +15,12 @@ func TestRedtapeSuite(t *testing.T) {
 }
 
 func (s *RedtapeSuite) TestARoles() {
-	subRole := NewRole("sub_role", "Sub Role", "Embed me into anther role")
+	subRole := NewRole("sub_role")
 	table := []struct {
 		role *Role
 	}{
 		{
-			role: NewRole("test_role", "Test Role", "Just testing"),
+			role: NewRole("test_role"),
 		},
 	}
 
@@ -61,7 +61,7 @@ func (s *RedtapeSuite) TestBPolicies() {
 						"value": true,
 					},
 				}),
-				WithRole(NewRole("allow_test", "test_policy", "testing policies")),
+				WithRole(NewRole("allow_test")),
 			),
 		},
 	}
@@ -81,8 +81,8 @@ func (s *RedtapeSuite) TestCEnforce() {
 	m := NewMatcher()
 	pm := NewManager()
 
-	allow := NewRole("test.A", "Test A Role", "Test access")
-	deny := NewRole("test.B", "Test B Role", "Test access")
+	allow := NewRole("test.A")
+	deny := NewRole("test.B")
 
 	popts := []PolicyOptions{
 		{

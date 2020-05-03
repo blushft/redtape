@@ -9,7 +9,7 @@ import (
 // NewHTTPMiddleware returns an http handler that evaluates policy before returning child handler
 func NewHTTPMiddleware(e redtape.Enforcer, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := redtape.NewRequest(r.Context(), r.URL.Path, r.Method, "", "", requestMetadata(r))
+		req := redtape.NewRequestWithContext(r.Context(), r.URL.Path, r.Method, "", "", requestMetadata(r))
 
 		if err := e.Enforce(req); err != nil {
 			http.Error(w, err.Error(), http.StatusForbidden)

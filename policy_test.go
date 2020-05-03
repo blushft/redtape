@@ -51,7 +51,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 				id:   "test_policy",
 				desc: "testing policy",
 				roles: []*Role{
-					NewRole("test_role", "Test", "Testing"),
+					NewRole("test_role"),
 				},
 				resources: []string{
 					"test_res",
@@ -62,7 +62,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 				conditions: newConditions(),
 				effect:     PolicyEffectAllow,
 			},
-			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"Test","description":"Testing","roles":null}],"resources":["test_res"],"actions":["test_action"],"scopes":null,"conditions":[{"name":"office-ip","type":"ip_whitelist","options":{"networks":["192.168.1.0/24"]}}],"effect":"allow"}`),
+			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"","description":"","roles":null}],"resources":["test_res"],"actions":["test_action"],"scopes":null,"conditions":[{"name":"office-ip","type":"ip_whitelist","options":{"networks":["192.168.1.0/24"]}}],"effect":"allow"}`),
 			wantErr: false,
 		},
 	}

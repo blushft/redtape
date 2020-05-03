@@ -11,14 +11,24 @@ type Request struct {
 	Context  context.Context `json:"-"`
 }
 
-// NewRequest builds a request from the provided parameters
-func NewRequest(ctx context.Context, res, action, role, scope string, meta map[string]interface{}) *Request {
+func NewRequest(res, action, role, scope string, meta ...map[string]interface{}) *Request {
 	return &Request{
 		Resource: res,
 		Action:   action,
 		Role:     role,
 		Scope:    scope,
-		Context:  NewRequestContext(ctx, meta),
+		Context:  NewRequestContext(nil, meta...),
+	}
+}
+
+// NewRequestWithContext builds a request from the provided parameters
+func NewRequestWithContext(ctx context.Context, res, action, role, scope string, meta ...map[string]interface{}) *Request {
+	return &Request{
+		Resource: res,
+		Action:   action,
+		Role:     role,
+		Scope:    scope,
+		Context:  NewRequestContext(ctx, meta...),
 	}
 }
 
@@ -35,14 +45,20 @@ type RequestMetadataKey struct{}
 
 // NewRequestContext builds a context object from an existing context, embedding request metadata. If nil
 // values are provided to both arguments, new values are created or returned
-func NewRequestContext(ctx context.Context, meta map[string]interface{}) context.Context {
+func NewRequestContext(ctx context.Context, meta ...map[string]interface{}) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
-	if meta != nil {
-		ctx = context.WithValue(ctx, RequestMetadataKey{}, RequestMetadata(meta))
+	reqmeta := RequestMetadata{}
+
+	for _, md := range meta {
+		for k, v := range md {
+			reqmeta[k] = v
+		}
 	}
+
+	ctx = context.WithValue(ctx, RequestMetadataKey{}, reqmeta)
 
 	return ctx
 }

@@ -20,12 +20,10 @@ type Role struct {
 }
 
 // NewRole returns a Role configured with the provided options
-func NewRole(id, name, desc string, roles ...*Role) *Role {
+func NewRole(id string, roles ...*Role) *Role {
 	return &Role{
-		ID:          id,
-		Name:        name,
-		Description: desc,
-		Roles:       roles,
+		ID:    id,
+		Roles: roles,
 	}
 }
 

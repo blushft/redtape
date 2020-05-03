@@ -25,6 +25,10 @@ func NewEnforcer(manager PolicyManager, matcher Matcher, auditor Auditor) (Enfor
 	}, nil
 }
 
+func NewDefaultEnforcer(manager PolicyManager) (Enforcer, error) {
+	return NewEnforcer(manager, DefaultMatcher, nil)
+}
+
 // Enforce fulfills the Enforce method of Enforcer. The default implementation matches the Request against
 // the range of stored Policies and evaluating each.
 // Polices are matched first by Action, then Role, Resource, Scope and finally Condition. If a match is found, the
