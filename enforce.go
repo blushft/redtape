@@ -2,10 +2,9 @@ package redtape
 
 import (
 	"errors"
-	"fmt"
 )
 
-// Enforcer interface provides methods to enforce policies against a request
+// Enforcer interface provides methods to enforce policies against a request.
 type Enforcer interface {
 	Enforce(*Request) error
 }
@@ -16,7 +15,7 @@ type enforcer struct {
 	auditor Auditor
 }
 
-// NewEnforcer returns a default Enforcer combining a PolicyManager, Matcher, and Auditor
+// NewEnforcer returns a default Enforcer combining a PolicyManager, Matcher, and Auditor.
 func NewEnforcer(manager PolicyManager, matcher Matcher, auditor Auditor) (Enforcer, error) {
 	return &enforcer{
 		manager: manager,
@@ -26,7 +25,7 @@ func NewEnforcer(manager PolicyManager, matcher Matcher, auditor Auditor) (Enfor
 }
 
 func NewDefaultEnforcer(manager PolicyManager) (Enforcer, error) {
-	return NewEnforcer(manager, DefaultMatcher, nil)
+	return NewEnforcer(manager, DefaultMatcher, NewConsoleAuditor(AuditAll))
 }
 
 // Enforce fulfills the Enforce method of Enforcer. The default implementation matches the Request against
@@ -37,6 +36,8 @@ func NewDefaultEnforcer(manager PolicyManager) (Enforcer, error) {
 func (e *enforcer) Enforce(r *Request) error {
 	allow := false
 	matched := []Policy{}
+
+	e.auditReq(r)
 
 	pol, err := e.manager.FindByRequest(r)
 	if err != nil {
@@ -57,15 +58,19 @@ func (e *enforcer) Enforce(r *Request) error {
 
 		// deny overrides all
 		if p.Effect() == PolicyEffectDeny {
-			return NewErrRequestDeniedExplicit(fmt.Errorf("access denied by policy %s", p.ID()))
+			e.auditEffect(r, PolicyEffectDeny)
+			return NewErrRequestDeniedExplicit(p)
 		}
 
 		allow = true
 	}
 
 	if !allow && DefaultPolicyEffect == PolicyEffectDeny {
+		e.auditEffect(r, PolicyEffectDeny)
 		return NewErrRequestDeniedImplicit(errors.New("access denied because no policy allowed access"))
 	}
+
+	e.auditEffect(r, PolicyEffectAllow)
 
 	return nil
 }
@@ -134,4 +139,16 @@ func (e *enforcer) evalPolicy(r *Request, p Policy) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (e *enforcer) auditReq(req *Request) {
+	if e.auditor != nil {
+		e.auditor.LogRequest(req)
+	}
+}
+
+func (e *enforcer) auditEffect(req *Request, effect PolicyEffect) {
+	if e.auditor != nil {
+		e.auditor.LogPolicyEffect(req, effect)
+	}
 }

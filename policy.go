@@ -7,17 +7,17 @@ import (
 	"github.com/fatih/structs"
 )
 
-// PolicyEffect type is returned by Enforcer to describe the outcome of a policy evaluation
+// PolicyEffect type is returned by Enforcer to describe the outcome of a policy evaluation.
 type PolicyEffect string
 
 const (
-	// PolicyEffectAllow indicates explicit permission of the request
+	// PolicyEffectAllow indicates explicit permission of the request.
 	PolicyEffectAllow PolicyEffect = "allow"
-	// PolicyEffectDeny indicates explicti denial of the request
+	// PolicyEffectDeny indicates explicit denial of the request.
 	PolicyEffectDeny PolicyEffect = "deny"
 )
 
-// NewPolicyEffect returns a PolicyEffect for a given string
+// NewPolicyEffect returns a PolicyEffect for a given string.
 func NewPolicyEffect(s string) PolicyEffect {
 	switch s {
 	case "allow":
@@ -29,7 +29,7 @@ func NewPolicyEffect(s string) PolicyEffect {
 	}
 }
 
-// Policy provides methods to return data about a configured policy
+// Policy provides methods to return data about a configured policy.
 type Policy interface {
 	ID() string
 	Description() string
@@ -54,7 +54,7 @@ type policy struct {
 	ctx        context.Context
 }
 
-// NewPolicy returns a default policy implementation from a set of provided options
+// NewPolicy returns a default policy implementation from a set of provided options.
 func NewPolicy(opts ...PolicyOption) (Policy, error) {
 	o := NewPolicyOptions(opts...)
 
@@ -78,7 +78,7 @@ func NewPolicy(opts ...PolicyOption) (Policy, error) {
 	return p, nil
 }
 
-// MustNewPolicy returns a default policy implementation or panics on error
+// MustNewPolicy returns a default policy implementation or panics on error.
 func MustNewPolicy(opts ...PolicyOption) Policy {
 	p, err := NewPolicy(opts...)
 
@@ -89,7 +89,7 @@ func MustNewPolicy(opts ...PolicyOption) Policy {
 	return p
 }
 
-// MarshalJSON returns a JSON byte slice representation of the default policy implementation
+// MarshalJSON returns a JSON byte slice representation of the default policy implementation.
 func (p *policy) MarshalJSON() ([]byte, error) {
 	opts := PolicyOptions{
 		Name:        p.id,
@@ -100,7 +100,9 @@ func (p *policy) MarshalJSON() ([]byte, error) {
 		Effect:      string(p.effect),
 	}
 
-	var copts []ConditionOptions
+	structs.DefaultTagName = "json"
+
+	copts := make([]ConditionOptions, 0, len(p.conditions))
 	for k, c := range p.conditions {
 		cov := structs.Map(c)
 		co := ConditionOptions{
@@ -116,32 +118,32 @@ func (p *policy) MarshalJSON() ([]byte, error) {
 	return json.Marshal(opts)
 }
 
-// ID returns the policy ID
+// ID returns the policy ID.
 func (p *policy) ID() string {
 	return p.id
 }
 
-// Description returns the policy Description
+// Description returns the policy Description.
 func (p *policy) Description() string {
 	return p.desc
 }
 
-// Roles returns the roles the policy applies to
+// Roles returns the roles the policy applies to.
 func (p *policy) Roles() []*Role {
 	return p.roles
 }
 
-// Resources returns the resources the policy applies to
+// Resources returns the resources the policy applies to.
 func (p *policy) Resources() []string {
 	return p.resources
 }
 
-// Actions returns the actions the policy applies to
+// Actions returns the actions the policy applies to.
 func (p *policy) Actions() []string {
 	return p.actions
 }
 
-// Scopes returns the scopes the policy applies to
+// Scopes returns the scopes the policy applies to.
 func (p *policy) Scopes() []string {
 	return p.scopes
 }
@@ -150,17 +152,17 @@ func (p *policy) Context() context.Context {
 	return p.ctx
 }
 
-// Conditions returns the Conditions used to apply the policy
+// Conditions returns the Conditions used to apply the policy.
 func (p *policy) Conditions() Conditions {
 	return p.conditions
 }
 
-// Effect returns the configured PolicyEffect
+// Effect returns the configured PolicyEffect.
 func (p *policy) Effect() PolicyEffect {
 	return p.effect
 }
 
-// PolicyOptions struct allows different Policy implementations to be configured with marshalable data
+// PolicyOptions struct allows different Policy implementations to be configured with marshalable data.
 type PolicyOptions struct {
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
@@ -173,10 +175,10 @@ type PolicyOptions struct {
 	Context     context.Context    `json:"-"`
 }
 
-// PolicyOption is a typed function allowing updates to PolicyOptions through functional options
+// PolicyOption is a typed function allowing updates to PolicyOptions through functional options.
 type PolicyOption func(*PolicyOptions)
 
-// NewPolicyOptions returns PolicyOptions configured with the provided functional options
+// NewPolicyOptions returns PolicyOptions configured with the provided functional options.
 func NewPolicyOptions(opts ...PolicyOption) PolicyOptions {
 	options := PolicyOptions{}
 
@@ -187,70 +189,82 @@ func NewPolicyOptions(opts ...PolicyOption) PolicyOptions {
 	return options
 }
 
-// SetPolicyOptions is a PolicyOption setting all PolicyOptions to the provided values
+// SetPolicyOptions is a PolicyOption setting all PolicyOptions to the provided values.
 func SetPolicyOptions(opts PolicyOptions) PolicyOption {
 	return func(o *PolicyOptions) {
 		*o = opts
 	}
 }
 
-// PolicyName sets the policy Name Option
+// PolicyName sets the policy Name Option.
 func PolicyName(n string) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Name = n
 	}
 }
 
-// PolicyDescription sets the policy description Option
+// PolicyDescription sets the policy description Option.
 func PolicyDescription(d string) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Description = d
 	}
 }
 
-// PolicyDeny sets the PolicyEffect to deny
+func SetPolicyEffect(s string) PolicyOption {
+	return func(o *PolicyOptions) {
+		o.Effect = s
+	}
+}
+
+// PolicyDeny sets the PolicyEffect to deny.
 func PolicyDeny() PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Effect = "deny"
 	}
 }
 
-// PolicyAllow sets the PolicyEffect to allow
+// PolicyAllow sets the PolicyEffect to allow.
 func PolicyAllow() PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Effect = "allow"
 	}
 }
 
-// SetResources replaces the option Resources with the provided values
+// SetResources replaces the option Resources with the provided values.
 func SetResources(s ...string) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Resources = s
 	}
 }
 
-// SetActions replaces the option Actions with the provided values
+// SetActions replaces the option Actions with the provided values.
 func SetActions(s ...string) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Actions = s
 	}
 }
 
-// SetContext sets the Context option
+func SetScopes(s ...string) PolicyOption {
+	return func(o *PolicyOptions) {
+		o.Scopes = s
+	}
+}
+
+// SetContext sets the Context option.
 func SetContext(ctx context.Context) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Context = ctx
 	}
 }
 
-// WithCondition adds a Condition to the Conditions option
+// WithCondition adds a Condition to the Conditions option.
 func WithCondition(co ConditionOptions) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Conditions = append(o.Conditions, co)
 	}
 }
 
-// WithRole adds a Role to the Roles option
+// WithRole adds a Role to the Roles option.
 func WithRole(r *Role) PolicyOption {
 	return func(o *PolicyOptions) {
 		o.Roles = append(o.Roles, r)

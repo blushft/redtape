@@ -7,7 +7,8 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var jsonCond = []byte(`
+func jsonCond() []byte {
+	return []byte(`
 [
 	{
 		"name": "some_condition",
@@ -18,10 +19,11 @@ var jsonCond = []byte(`
 	}
 ]
 `)
+}
 
 func TestNewConditions(t *testing.T) {
 	var unmCond []ConditionOptions
-	if err := json.Unmarshal(jsonCond, &unmCond); err != nil {
+	if err := json.Unmarshal(jsonCond(), &unmCond); err != nil {
 		t.Errorf("failed to unmarshal options: %v", err)
 	}
 
@@ -58,26 +60,6 @@ func TestNewConditions(t *testing.T) {
 			test:    "mycond",
 			val:     true,
 			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "ip_whitelist",
-			args: args{
-				opts: []ConditionOptions{
-					{
-						Name: "office-ip",
-						Type: "ip_whitelist",
-						Options: map[string]interface{}{
-							"networks": []string{
-								"192.168.1.0/24",
-							},
-						},
-					},
-				},
-			},
-			test:    "office-ip",
-			val:     "192.168.10.111",
-			want:    false,
 			wantErr: false,
 		},
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/blushft/redtape/strmatch"
 )
 
-// Matcher provides methods to facilitate matching policies to different request elements
+// Matcher provides methods to facilitate matching policies to different request elements.
 type Matcher interface {
 	MatchPolicy(p Policy, def []string, val string) (bool, error)
 	MatchRole(r *Role, val string) (bool, error)
@@ -15,13 +15,13 @@ type Matcher interface {
 
 type simpleMatcher struct{}
 
-// NewMatcher returns the default Matcher implementation
+// NewMatcher returns the default Matcher implementation.
 func NewMatcher() Matcher {
 	return &simpleMatcher{}
 }
 
 // MatchPolicy evaluates true when the provided val wildcard matches at least one element in def.
-// If def is nil, a match is assumed against any value
+// If def is nil, a match is assumed against any value.
 func (m *simpleMatcher) MatchPolicy(p Policy, def []string, val string) (bool, error) {
 	if def == nil {
 		return true, nil
@@ -36,7 +36,7 @@ func (m *simpleMatcher) MatchPolicy(p Policy, def []string, val string) (bool, e
 	return false, nil
 }
 
-// MatchRole evaluates true when the provided val wildcard matches at least one role in Role#EffectiveRoles
+// MatchRole evaluates true when the provided val wildcard matches at least one role in Role#EffectiveRoles.
 func (m *simpleMatcher) MatchRole(r *Role, val string) (bool, error) {
 	er, err := r.EffectiveRoles()
 	if err != nil {
@@ -58,7 +58,7 @@ type regexMatcher struct {
 	pat        map[string]*regexp.Regexp
 }
 
-// NewRegexMatcher returns a Matcher using delimited regex for matching
+// NewRegexMatcher returns a Matcher using delimited regex for matching.
 func NewRegexMatcher() Matcher {
 	return &regexMatcher{
 		startDelim: "<",
@@ -67,7 +67,7 @@ func NewRegexMatcher() Matcher {
 	}
 }
 
-// MatchRole evaluates true when the provided val regex matches at least one role in Role#EffectiveRoles
+// MatchRole evaluates true when the provided val regex matches at least one role in Role#EffectiveRoles.
 func (m *regexMatcher) MatchRole(r *Role, val string) (bool, error) {
 	ef, err := r.EffectiveRoles()
 	if err != nil {
@@ -82,7 +82,7 @@ func (m *regexMatcher) MatchRole(r *Role, val string) (bool, error) {
 	return m.match(def, val)
 }
 
-// MatchPolicy evaluates true when the provided val regex matches at least one element in def
+// MatchPolicy evaluates true when the provided val regex matches at least one element in def.
 func (m *regexMatcher) MatchPolicy(p Policy, def []string, val string) (bool, error) {
 	return m.match(def, val)
 }

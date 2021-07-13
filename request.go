@@ -2,7 +2,7 @@ package redtape
 
 import "context"
 
-// Request represents a request to be matched against a policy set
+// Request represents a request to be matched against a policy set.
 type Request struct {
 	Resource string          `json:"resource"`
 	Action   string          `json:"action"`
@@ -17,11 +17,11 @@ func NewRequest(res, action, role, scope string, meta ...map[string]interface{})
 		Action:   action,
 		Role:     role,
 		Scope:    scope,
-		Context:  NewRequestContext(nil, meta...),
+		Context:  NewRequestContext(context.Background(), meta...),
 	}
 }
 
-// NewRequestWithContext builds a request from the provided parameters
+// NewRequestWithContext builds a request from the provided parameters.
 func NewRequestWithContext(ctx context.Context, res, action, role, scope string, meta ...map[string]interface{}) *Request {
 	return &Request{
 		Resource: res,
@@ -32,19 +32,19 @@ func NewRequestWithContext(ctx context.Context, res, action, role, scope string,
 	}
 }
 
-// Metadata returns metadata stored in context or an empty set
+// Metadata returns metadata stored in context or an empty set.
 func (r *Request) Metadata() RequestMetadata {
 	return RequestMetadataFromContext(r.Context)
 }
 
-// RequestMetadata is a helper type to allow type safe retrieval
+// RequestMetadata is a helper type to allow type safe retrieval.
 type RequestMetadata map[string]interface{}
 
-// RequestMetadataKey is a type to identify RequestMetadata embedded in context
+// RequestMetadataKey is a type to identify RequestMetadata embedded in context.
 type RequestMetadataKey struct{}
 
 // NewRequestContext builds a context object from an existing context, embedding request metadata. If nil
-// values are provided to both arguments, new values are created or returned
+// values are provided to both arguments, new values are created or returned.
 func NewRequestContext(ctx context.Context, meta ...map[string]interface{}) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
@@ -63,7 +63,7 @@ func NewRequestContext(ctx context.Context, meta ...map[string]interface{}) cont
 	return ctx
 }
 
-// RequestMetadataFromContext extracts RequestMetadata from a given context or returns an empty metadata set
+// RequestMetadataFromContext extracts RequestMetadata from a given context or returns an empty metadata set.
 func RequestMetadataFromContext(ctx context.Context) RequestMetadata {
 	if ctx == nil {
 		return RequestMetadata{}

@@ -10,12 +10,10 @@ func newConditions() Conditions {
 	c, err := NewConditions(
 		[]ConditionOptions{
 			{
-				Name: "office-ip",
-				Type: "ip_whitelist",
+				Name: "let-me-in",
+				Type: "bool",
 				Options: map[string]interface{}{
-					"networks": []string{
-						"192.168.1.0/24",
-					},
+					"value": true,
 				},
 			},
 		},
@@ -62,7 +60,7 @@ func Test_policy_MarshalJSON(t *testing.T) {
 				conditions: newConditions(),
 				effect:     PolicyEffectAllow,
 			},
-			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"","description":"","roles":null}],"resources":["test_res"],"actions":["test_action"],"scopes":null,"conditions":[{"name":"office-ip","type":"ip_whitelist","options":{"networks":["192.168.1.0/24"]}}],"effect":"allow"}`),
+			want:    []byte(`{"name":"test_policy","description":"testing policy","roles":[{"id":"test_role","name":"","description":"","roles":null}],"resources":["test_res"],"actions":["test_action"],"scopes":null,"conditions":[{"name":"let-me-in","type":"bool","options":{"value":true}}],"effect":"allow"}`),
 			wantErr: false,
 		},
 	}
