@@ -28,7 +28,7 @@ func (c *IPAllowCondition) Meets(val interface{}, _ *redtape.Request) bool {
 	return matchIP(ip, c.Networks)
 }
 
-// IPAllowCondition performs CIDR matching for a range of Networks against a provided value and denys.
+// IPDenyCondition performs CIDR matching for a range of Networks against a provided value and denys.
 // access on match.
 type IPDenyCondition struct {
 	Networks []string `json:"networks"`

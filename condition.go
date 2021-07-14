@@ -102,7 +102,16 @@ func (c *RoleEqualsCondition) Name() string {
 
 // Meets evaluates true when the role val matches Request#Role.
 func (c *RoleEqualsCondition) Meets(val interface{}, r *Request) bool {
-	s, ok := val.(string)
+	switch v := val.(type) {
+	case string:
+		return v == r.Role
+	case []string:
+		for _, s := range v {
+			if s == r.Role {
+				return true
+			}
+		}
+	}
 
-	return ok && s == r.Role
+	return false
 }

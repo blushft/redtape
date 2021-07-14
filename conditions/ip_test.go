@@ -29,7 +29,7 @@ func TestIPConditions(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ip_whitelist",
+			name: "ip_allow",
 			args: args{
 				opts: []redtape.ConditionOptions{
 					{

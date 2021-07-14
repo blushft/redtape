@@ -1,4 +1,3 @@
-
 # Redtape [![Go Report Card](https://goreportcard.com/badge/github.com/blushft/redtape)](https://goreportcard.com/report/github.com/blushft/redtape) ![Go](https://github.com/blushft/redtape/workflows/Go/badge.svg) [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/blushft/redtape) [![license](http://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://raw.githubusercontent.com/blushft/redtape/master/LICENSE)
 
 ## A flexible policy engine for Go
@@ -15,7 +14,7 @@ go get github.com/blushft/redtape
 
 ### Roles
 
-Roles are the basic permission unit for Redtape. A role is identified by a simple string like `view_comments` and can contain other roles. 
+Roles are the basic permission unit for Redtape. A role is identified by a simple string like `view_comments` and can contain other roles.
 
 ```golang
 myrole := redtape.NewRole("edit_comments")
@@ -65,8 +64,6 @@ req := NewRequest("/comments", "GET", "edit_comments", "post",
 ```
 
 If you'd like to append an existing context with this metadata, use the `NewRequestWithContext` method.
-
-
 
 ### Policies
 
@@ -118,7 +115,6 @@ Conditions can be applied to policies to add additional logic to the application
 
 TODO: Document usage API for conditions.
 
-
 ### PolicyManager
 
 The policy manager interface provides basic methods to allow you to load policies from memory, a storage backend, or files. The default manager is memory backed without persistence.
@@ -139,7 +135,7 @@ enforcer, err := redtape.NewDefaultEnforcer(manager)
 err := enforcer.Enforce(myRequest)
 ```
 
-The default enforcer uses the default matcher which allows resources, actions, and scopes to be matched with wildcards. 
+The default enforcer uses the default matcher which allows resources, actions, and scopes to be matched with wildcards.
 
 Policies are evaluated in order to ensure matches against actions, then resources, then roles, then scopes, and finally conditions. If any matched policy evaluates to `PolicyEffect` deny, the request is actively denied. If no policy matches and the package level `DefaultPolicyEffect` is deny (the default), the request is implicitly denied.
 
@@ -155,7 +151,9 @@ if err := enforcer.Enforce(req); err != nil {
 ```
 
 ### Todo
+
 - [x] RoleManager interface
+- [ ] File backend for managers
 - [ ] SQL backend for managers
 - [ ] KV Store backend for managers
 - [ ] URL backend for managers
@@ -165,4 +163,3 @@ if err := enforcer.Enforce(req); err != nil {
 - [ ] Create middlewares for popular frameworks
 - [ ] Increased test coverage
 - [ ] Examples
-
