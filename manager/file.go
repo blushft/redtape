@@ -67,17 +67,23 @@ func (f *File) savePolicies(m map[string]redtape.Policy) error {
 	return os.WriteFile(f.policyPath(), b, os.ModePerm)
 }
 
-func (f *File) RoleManager() redtape.RoleManager {
-	return &fileRoleMgr{f}
+func (f *File) RoleManager() (redtape.RoleManager, error) {
+	if !fileExists(f.RolePath()) {
+		if err := os.WriteFile(f.RolePath(), []byte("{}"), os.ModePerm); err != nil {
+			return nil, err
+		}
+	}
+
+	return &fileRoleMgr{f}, nil
 }
 
-func (f *File) rolePath() string {
+func (f *File) RolePath() string {
 	fn := fmt.Sprintf("%s.roles", f.options.Name)
 	return filepath.Join(f.options.Path, fn)
 }
 
 func (f *File) loadRoles() (map[string]*redtape.Role, error) {
-	b, err := os.ReadFile(f.rolePath())
+	b, err := os.ReadFile(f.RolePath())
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +102,7 @@ func (f *File) saveRoles(roles map[string]*redtape.Role) error {
 		return err
 	}
 
-	return os.WriteFile(f.rolePath(), b, os.ModePerm)
+	return os.WriteFile(f.RolePath(), b, os.ModePerm)
 }
 
 type fileRoleMgr struct {
@@ -245,4 +251,17 @@ func limitIndices(limit, offset, length int) (int, int) {
 	}
 
 	return offset, offset + limit
+}
+
+func fileExists(fp string) bool {
+	i, err := os.Stat(fp)
+	if err != nil || err == os.ErrNotExist {
+		return false
+	}
+
+	if i.IsDir() {
+		return false
+	}
+
+	return true
 }

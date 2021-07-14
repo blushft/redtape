@@ -22,7 +22,7 @@ linters-settings:
       - fieldalignment # too strict
     settings:
       shadow:
-        strict: true # default false
+        strict: false # default false
   staticcheck:
     go: "1.16" # default 1.13
     checks: [ "*" ] # https://staticcheck.io/docs/options#checks # default ["*"]
