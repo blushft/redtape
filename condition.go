@@ -19,8 +19,8 @@ func NewConditionRegistry(conds ...map[string]ConditionBuilder) ConditionRegistr
 		new(BoolCondition).Name(): func() Condition {
 			return new(BoolCondition)
 		},
-		new(RoleEqualsCondition).Name(): func() Condition {
-			return new(RoleEqualsCondition)
+		new(SubjectEqualsCondition).Name(): func() Condition {
+			return new(SubjectEqualsCondition)
 		},
 	}
 
