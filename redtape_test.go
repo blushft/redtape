@@ -145,7 +145,7 @@ func (s *RedtapeSuite) TestCEnforce() {
 	req := &Request{
 		Resource: "test_resource",
 		Action:   "test",
-		Role:     "test.A",
+		Subject:  "test.A",
 		Context: NewRequestContext(context.TODO(), map[string]interface{}{
 			"match_me": true,
 		}),
@@ -154,7 +154,7 @@ func (s *RedtapeSuite) TestCEnforce() {
 	err = e.Enforce(req)
 	s.Require().NoError(err, "should be allowed")
 
-	req.Role = "test.B"
+	req.Subject = "test.B"
 
 	err = e.Enforce(req)
 	s.Require().Error(err, "should be denied")

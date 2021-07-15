@@ -51,21 +51,33 @@ func NewConditions(opts []ConditionOptions, reg ConditionRegistry) (Conditions, 
 	cond := make(map[string]Condition)
 
 	for _, co := range opts {
-		if cf, ok := reg[co.Type]; ok {
-			nc := cf()
-			if len(co.Options) > 0 {
-				if err := mapstructure.Decode(co.Options, &nc); err != nil {
-					return nil, err
-				}
-			}
-
-			cond[co.Name] = nc
-		} else {
+		cf, ok := reg[co.Type]
+		if !ok {
 			return nil, fmt.Errorf("unknown condition type %s, is it registered?", co.Type)
 		}
+
+		nc := cf()
+		if len(co.Options) > 0 {
+			if err := mapstructure.Decode(co.Options, &nc); err != nil {
+				return nil, err
+			}
+		}
+
+		cond[co.Name] = nc
 	}
 
 	return cond, nil
+}
+
+func (c Conditions) Meets(r *Request) bool {
+	meta := RequestMetadataFromContext(r.Context)
+	for key, cond := range c {
+		if ok := cond.Meets(meta[key], r); !ok {
+			return false
+		}
+	}
+
+	return true
 }
 
 // ConditionOptions contains the values used to build a Condition.
@@ -93,21 +105,21 @@ func (c *BoolCondition) Meets(val interface{}, _ *Request) bool {
 }
 
 // RoleEqualsCondition matches the Request role against the required role passed to the condition.
-type RoleEqualsCondition struct{}
+type SubjectEqualsCondition struct{}
 
 // Name fulfills the Name method of Condition.
-func (c *RoleEqualsCondition) Name() string {
+func (c *SubjectEqualsCondition) Name() string {
 	return "role_equals"
 }
 
 // Meets evaluates true when the role val matches Request#Role.
-func (c *RoleEqualsCondition) Meets(val interface{}, r *Request) bool {
+func (c *SubjectEqualsCondition) Meets(val interface{}, r *Request) bool {
 	switch v := val.(type) {
 	case string:
-		return v == r.Role
+		return v == r.Subject
 	case []string:
 		for _, s := range v {
-			if s == r.Role {
+			if s == r.Subject {
 				return true
 			}
 		}

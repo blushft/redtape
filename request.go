@@ -6,27 +6,27 @@ import "context"
 type Request struct {
 	Resource string          `json:"resource"`
 	Action   string          `json:"action"`
-	Role     string          `json:"subject"`
+	Subject  string          `json:"subject"`
 	Scope    string          `json:"scope"`
 	Context  context.Context `json:"-"`
 }
 
-func NewRequest(res, action, role, scope string, meta ...map[string]interface{}) *Request {
+func NewRequest(res, action, subject, scope string, meta ...map[string]interface{}) *Request {
 	return &Request{
 		Resource: res,
 		Action:   action,
-		Role:     role,
+		Subject:  subject,
 		Scope:    scope,
 		Context:  NewRequestContext(context.Background(), meta...),
 	}
 }
 
 // NewRequestWithContext builds a request from the provided parameters.
-func NewRequestWithContext(ctx context.Context, res, action, role, scope string, meta ...map[string]interface{}) *Request {
+func NewRequestWithContext(ctx context.Context, res, action, subject, scope string, meta ...map[string]interface{}) *Request {
 	return &Request{
 		Resource: res,
 		Action:   action,
-		Role:     role,
+		Subject:  subject,
 		Scope:    scope,
 		Context:  NewRequestContext(ctx, meta...),
 	}

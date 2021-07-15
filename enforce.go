@@ -75,17 +75,6 @@ func (e *enforcer) Enforce(r *Request) error {
 	return nil
 }
 
-func (e *enforcer) checkConditions(p Policy, r *Request) bool {
-	for key, cond := range p.Conditions() {
-		meta := RequestMetadataFromContext(r.Context)
-		if pass := cond.Meets(meta[key], r); !pass {
-			return false
-		}
-	}
-
-	return true
-}
-
 func (e *enforcer) evalPolicy(r *Request, p Policy) (bool, error) {
 	// match actions
 	am, err := e.matcher.MatchPolicy(p, p.Actions(), r.Action)
@@ -100,7 +89,7 @@ func (e *enforcer) evalPolicy(r *Request, p Policy) (bool, error) {
 	rm := false
 	// match roles
 	for _, role := range p.Roles() {
-		b, err := e.matcher.MatchRole(role, r.Role)
+		b, err := e.matcher.MatchRole(role, r.Subject)
 		if err != nil {
 			return false, err
 		}
@@ -134,7 +123,7 @@ func (e *enforcer) evalPolicy(r *Request, p Policy) (bool, error) {
 	}
 
 	// check all conditions
-	if !e.checkConditions(p, r) {
+	if !p.Conditions().Meets(r) {
 		return false, nil
 	}
 

@@ -45,7 +45,7 @@ const (
 // LogRequest prints the request to console if AuditLevel is at or above AuditRequest.
 func (a *consoleAuditor) LogRequest(req *Request) {
 	if a.lvl >= AuditRequest {
-		log.Printf(logfmt, logReq, req.Action, req.Resource, req.Role, req.Scope)
+		log.Printf(logfmt, logReq, req.Action, req.Resource, req.Subject, req.Scope)
 	}
 }
 
@@ -53,8 +53,8 @@ func (a *consoleAuditor) LogRequest(req *Request) {
 func (a *consoleAuditor) LogPolicyEffect(req *Request, effect PolicyEffect) {
 	switch {
 	case effect == PolicyEffectDeny && a.lvl >= AuditDeny:
-		log.Printf(logfmt, logDeny, req.Action, req.Resource, req.Role, req.Scope)
+		log.Printf(logfmt, logDeny, req.Action, req.Resource, req.Subject, req.Scope)
 	case effect == PolicyEffectAllow && a.lvl >= AuditAllow:
-		log.Printf(logfmt, logAllow, req.Action, req.Resource, req.Role, req.Scope)
+		log.Printf(logfmt, logAllow, req.Action, req.Resource, req.Subject, req.Scope)
 	}
 }
