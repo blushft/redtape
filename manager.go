@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 )
 
 // PolicyManager contains methods to allow query, update, and removal of policies.
@@ -20,20 +21,24 @@ type PolicyManager interface {
 	FindByScope(string) ([]Policy, error)
 }
 
-type defaultManager struct {
+type defaultPolicyManager struct {
 	policies map[string]Policy
 	mu       sync.RWMutex
 }
 
-// NewManager returns a default memory backed policy manager.
-func NewManager() PolicyManager {
-	return &defaultManager{
+// NewPolicyManager returns a default memory backed policy manager.
+func NewPolicyManager() PolicyManager {
+	return newPolicyManager()
+}
+
+func newPolicyManager() *defaultPolicyManager {
+	return &defaultPolicyManager{
 		policies: make(map[string]Policy),
 	}
 }
 
 // Create adds a policy to the manager.
-func (m *defaultManager) Create(p Policy) error {
+func (m *defaultPolicyManager) Create(p Policy) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -47,7 +52,7 @@ func (m *defaultManager) Create(p Policy) error {
 }
 
 // Update replaces a named policy with the provided policy.
-func (m *defaultManager) Update(p Policy) error {
+func (m *defaultPolicyManager) Update(p Policy) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -57,7 +62,7 @@ func (m *defaultManager) Update(p Policy) error {
 }
 
 // Get retrieves a policy by id or error if one does not exist.
-func (m *defaultManager) Get(id string) (Policy, error) {
+func (m *defaultPolicyManager) Get(id string) (Policy, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -70,7 +75,7 @@ func (m *defaultManager) Get(id string) (Policy, error) {
 }
 
 // Delete removes a policy by id.
-func (m *defaultManager) Delete(id string) error {
+func (m *defaultPolicyManager) Delete(id string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -79,7 +84,7 @@ func (m *defaultManager) Delete(id string) error {
 }
 
 // All returns a slice containing all policies.
-func (m *defaultManager) All(limit int, offset int) ([]Policy, error) {
+func (m *defaultPolicyManager) All(limit int, offset int) ([]Policy, error) {
 	m.mu.RLock()
 
 	pkeys := make([]string, len(m.policies))
@@ -102,7 +107,7 @@ func (m *defaultManager) All(limit int, offset int) ([]Policy, error) {
 	return pols, nil
 }
 
-func (m *defaultManager) findAll() ([]Policy, error) {
+func (m *defaultPolicyManager) findAll() ([]Policy, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -115,23 +120,90 @@ func (m *defaultManager) findAll() ([]Policy, error) {
 }
 
 // FindByRequest returns all policies matching a Request.
-func (m *defaultManager) FindByRequest(r *Request) ([]Policy, error) {
+func (m *defaultPolicyManager) FindByRequest(r *Request) ([]Policy, error) {
 	return m.findAll()
 }
 
 // FindByRole returns all policies matching a Role.
-func (m *defaultManager) FindByRole(_ string) ([]Policy, error) {
+func (m *defaultPolicyManager) FindByRole(_ string) ([]Policy, error) {
 	return m.findAll()
 }
 
 // FindByResource returns all policies matching a Resource.
-func (m *defaultManager) FindByResource(_ string) ([]Policy, error) {
+func (m *defaultPolicyManager) FindByResource(_ string) ([]Policy, error) {
 	return m.findAll()
 }
 
 // FindByResource returns all policies matching a Resource.
-func (m *defaultManager) FindByScope(_ string) ([]Policy, error) {
+func (m *defaultPolicyManager) FindByScope(_ string) ([]Policy, error) {
 	return m.findAll()
+}
+
+type policyCache struct {
+	mgr   PolicyManager
+	cache *defaultPolicyManager
+	ttl   time.Time
+	exp   time.Duration
+}
+
+func NewPolicyCache(mgr PolicyManager, exp time.Duration) *policyCache {
+	return &policyCache{
+		mgr:   mgr,
+		cache: newPolicyManager(),
+		exp:   exp,
+		ttl:   time.Now().Add(exp),
+	}
+}
+
+func (c *policyCache) resetCache() {
+	c.ttl = time.Now().Add(exp)
+	c.cache = newPolicyManager()
+}
+
+func (c *policyCache) checkExp() bool {
+	if time.Now().After(c.ttl) {
+		c.resetCache()
+		return true
+	}
+
+	return false
+}
+
+func (c *policyCache) Create(p Policy) error {
+	if err := c.mgr.Create(p); err != nil {
+		return err
+	}
+
+	return c.cache.Create(p)
+}
+
+func (c *policyCache) Update(p Policy) error {
+	if err := c.mgr.Update(p); err != nil {
+		return err
+	}
+
+	return c.cache.Update(p)
+}
+
+func (c *policyCache) Get(id string) (Policy, error) {
+	if c.checkExp() {
+		p, err := c.mgr.Get(id)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := c.cache.Create(p); err != nil {
+			return nil, err
+		}
+
+		return p, nil
+	}
+
+	p, err := c.cache.Get(id)
+	if err == nil {
+		return p, nil
+	}
+
 }
 
 // RoleManager provides methods to store and retrieve role sets.

@@ -1,16 +1,16 @@
-package manager_test
+package file_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/blushft/redtape"
-	"github.com/blushft/redtape/manager"
+	"github.com/blushft/redtape/manager/file"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestFileRoleManager(t *testing.T) {
-	f := manager.NewFile()
+	f := file.New()
 	rm, err := f.RoleManager()
 	if err != nil {
 		t.Fatal(err)

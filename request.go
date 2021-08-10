@@ -2,39 +2,87 @@ package redtape
 
 import "context"
 
+type RequestContextKey struct{}
+
+type RequestOption func(*Request)
+
+func RequestResource(res string) RequestOption {
+	return func(r *Request) {
+		r.Resource = res
+	}
+}
+
+func RequestAction(action string) RequestOption {
+	return func(r *Request) {
+		r.Action = action
+	}
+}
+
+func RequestSubject(sub Subject) RequestOption {
+	return func(r *Request) {
+		r.Subject = sub
+	}
+}
+
+func RequestScope(s string) RequestOption {
+	return func(r *Request) {
+		r.Scope = s
+	}
+}
+
+func RequestContext(ctx context.Context, meta ...map[string]interface{}) RequestOption {
+	return func(r *Request) {
+		r.Context = NewRequestContext(ctx, meta...)
+	}
+}
+
+func WithMetadata(meta ...map[string]interface{}) RequestOption {
+	return func(r *Request) {
+		if r.Context == nil {
+			r.Context = NewRequestContext(context.Background(), meta...)
+			return
+		}
+
+		r.AddMetadata(meta...)
+	}
+}
+
 // Request represents a request to be matched against a policy set.
 type Request struct {
 	Resource string          `json:"resource"`
 	Action   string          `json:"action"`
-	Subject  string          `json:"subject"`
+	Subject  Subject         `json:"subject"`
 	Scope    string          `json:"scope"`
 	Context  context.Context `json:"-"`
 }
 
-func NewRequest(res, action, subject, scope string, meta ...map[string]interface{}) *Request {
-	return &Request{
-		Resource: res,
-		Action:   action,
-		Subject:  subject,
-		Scope:    scope,
-		Context:  NewRequestContext(context.Background(), meta...),
+// NewRequestWithContext builds a request from the provided options.
+func NewRequest(opts ...RequestOption) *Request {
+	req := &Request{
+		Context: NewRequestContext(context.Background()),
 	}
-}
 
-// NewRequestWithContext builds a request from the provided parameters.
-func NewRequestWithContext(ctx context.Context, res, action, subject, scope string, meta ...map[string]interface{}) *Request {
-	return &Request{
-		Resource: res,
-		Action:   action,
-		Subject:  subject,
-		Scope:    scope,
-		Context:  NewRequestContext(ctx, meta...),
+	for _, opt := range opts {
+		opt(req)
 	}
+
+	return req
 }
 
 // Metadata returns metadata stored in context or an empty set.
 func (r *Request) Metadata() RequestMetadata {
 	return RequestMetadataFromContext(r.Context)
+}
+
+func (r *Request) AddMetadata(meta ...map[string]interface{}) {
+	rmd := RequestMetadataFromContext(r.Context)
+	for _, md := range meta {
+		for k, v := range md {
+			rmd[k] = v
+		}
+	}
+
+	r.Context = context.WithValue(r.Context, RequestMetadataKey{}, rmd)
 }
 
 // RequestMetadata is a helper type to allow type safe retrieval.

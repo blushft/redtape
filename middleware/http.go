@@ -9,7 +9,16 @@ import (
 // NewHTTPMiddleware returns an http handler that evaluates policy before returning child handler.
 func NewHTTPMiddleware(e redtape.Enforcer, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req := redtape.NewRequestWithContext(r.Context(), r.URL.Path, r.Method, "", "", requestMetadata(r))
+		meta := make(map[string]interface{})
+		for k := range r.Header {
+			meta[k] = r.Header.Get(k)
+		}
+
+		req := redtape.NewRequest(
+			redtape.RequestContext(r.Context(), meta),
+			redtape.RequestResource(r.URL.Path),
+			redtape.RequestAction(r.Method),
+			redtape.RequestSubject(requestSubject(r)))
 
 		if err := e.Enforce(req); err != nil {
 			http.Error(w, err.Error(), http.StatusForbidden)
@@ -20,12 +29,11 @@ func NewHTTPMiddleware(e redtape.Enforcer, h http.Handler) http.Handler {
 	})
 }
 
-func requestMetadata(r *http.Request) map[string]interface{} {
-	return map[string]interface{}{
-		"referer":    r.Referer,
-		"cookies":    r.Cookies(),
-		"user_agent": r.UserAgent(),
-		"url":        r.URL.String,
-		"headers":    r.Header,
-	}
+func requestSubject(r *http.Request) redtape.Subject {
+	return redtape.NewSubject(r.RemoteAddr,
+		redtape.SubjectName(r.UserAgent()),
+		redtape.SubjectMeta(map[string]interface{}{
+			"referer": r.Referer,
+		}),
+	)
 }

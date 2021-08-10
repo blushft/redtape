@@ -1,4 +1,4 @@
-package manager
+package file
 
 import (
 	"encoding/json"
@@ -10,15 +10,15 @@ import (
 	"github.com/blushft/redtape"
 )
 
-type FileOptions struct {
+type Options struct {
 	Name string
 	Path string
 }
 
-type FileOption func(*FileOptions)
+type Option func(*Options)
 
-func NewFileOptions(opts ...FileOption) FileOptions {
-	o := FileOptions{
+func NewOptions(opts ...Option) Options {
+	o := Options{
 		Name: "redtape",
 	}
 
@@ -30,12 +30,12 @@ func NewFileOptions(opts ...FileOption) FileOptions {
 }
 
 type File struct {
-	options FileOptions
+	options Options
 }
 
-func NewFile(opts ...FileOption) *File {
+func New(opts ...Option) *File {
 	return &File{
-		options: NewFileOptions(opts...),
+		options: NewOptions(opts...),
 	}
 }
 

@@ -89,14 +89,16 @@ func (e *enforcer) evalPolicy(r *Request, p Policy) (bool, error) {
 	rm := false
 	// match roles
 	for _, role := range p.Roles() {
-		b, err := e.matcher.MatchRole(role, r.Subject)
-		if err != nil {
-			return false, err
-		}
+		for _, sr := range r.Subject.EffectiveRoles() {
+			b, err := e.matcher.MatchRole(role, sr.ID)
+			if err != nil {
+				return false, err
+			}
 
-		if b {
-			rm = true
-			break
+			if b {
+				rm = true
+				break
+			}
 		}
 	}
 

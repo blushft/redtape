@@ -116,10 +116,10 @@ func (c *SubjectEqualsCondition) Name() string {
 func (c *SubjectEqualsCondition) Meets(val interface{}, r *Request) bool {
 	switch v := val.(type) {
 	case string:
-		return v == r.Subject
+		return v == r.Subject.ID
 	case []string:
 		for _, s := range v {
-			if s == r.Subject {
+			if s == r.Subject.ID {
 				return true
 			}
 		}

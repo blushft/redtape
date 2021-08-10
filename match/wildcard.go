@@ -1,12 +1,12 @@
-package strmatch
+package match
 
 // MatchWildcard evaluates to true when the given value matches the search string by wildcard.
-func MatchWildcard(search, val string) bool {
+func Wildcard(search, val string) bool {
 	return matchWildcard(search, val, false)
 }
 
 // MatchSimpleWildcard evaluates to true when the given value matches the search string by simple wildcard.
-func MatchSimpleWildcard(search, val string) bool {
+func SimpleWildcard(search, val string) bool {
 	return matchWildcard(search, val, true)
 }
 

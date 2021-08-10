@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -29,8 +30,7 @@ func (s *RedtapeSuite) TestARoles() {
 		err := tt.role.AddRole(subRole)
 		s.NoError(err)
 
-		eff, err := tt.role.EffectiveRoles()
-		s.NoError(err)
+		eff := tt.role.EffectiveRoles()
 		s.Greater(len(eff), 1)
 
 		err = tt.role.AddRole(tt.role)
@@ -67,7 +67,7 @@ func (s *RedtapeSuite) TestBPolicies() {
 		},
 	}
 
-	man := NewManager()
+	man := NewPolicyManager()
 
 	for _, tt := range table {
 		p, err := NewPolicy(SetPolicyOptions(tt.opts))
@@ -80,10 +80,20 @@ func (s *RedtapeSuite) TestBPolicies() {
 
 func (s *RedtapeSuite) TestCEnforce() {
 	m := NewMatcher()
-	pm := NewManager()
+	pm := NewPolicyManager()
 
 	allow := NewRole("test.A")
 	deny := NewRole("test.B")
+
+	subA := Subject{
+		ID:    uuid.NewString(),
+		Roles: []*Role{allow},
+	}
+
+	subB := Subject{
+		ID:    uuid.NewString(),
+		Roles: []*Role{deny},
+	}
 
 	popts := []PolicyOptions{
 		{
@@ -145,7 +155,7 @@ func (s *RedtapeSuite) TestCEnforce() {
 	req := &Request{
 		Resource: "test_resource",
 		Action:   "test",
-		Subject:  "test.A",
+		Subject:  subA,
 		Context: NewRequestContext(context.TODO(), map[string]interface{}{
 			"match_me": true,
 		}),
@@ -154,7 +164,7 @@ func (s *RedtapeSuite) TestCEnforce() {
 	err = e.Enforce(req)
 	s.Require().NoError(err, "should be allowed")
 
-	req.Subject = "test.B"
+	req.Subject = subB
 
 	err = e.Enforce(req)
 	s.Require().Error(err, "should be denied")

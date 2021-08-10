@@ -1,8 +1,8 @@
-package strmatch
+package match
 
 import "testing"
 
-func TestMatchSimpleWildcard(t *testing.T) {
+func TestSimpleWildcard(t *testing.T) {
 	type args struct {
 		search string
 		val    string
@@ -23,8 +23,8 @@ func TestMatchSimpleWildcard(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MatchSimpleWildcard(tt.args.search, tt.args.val); got != tt.want {
-				t.Errorf("MatchSimpleWildcard() = %v, want %v", got, tt.want)
+			if got := SimpleWildcard(tt.args.search, tt.args.val); got != tt.want {
+				t.Errorf("SimpleWildcard() = %v, want %v", got, tt.want)
 			}
 		})
 	}

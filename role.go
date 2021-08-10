@@ -1,7 +1,6 @@
 package redtape
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -41,28 +40,29 @@ func (r *Role) AddRole(role *Role) error {
 	return nil
 }
 
-func getEffectiveRoles(r *Role, iter int) ([]*Role, error) {
-	if iter > maxIterDepth {
-		return nil, errors.New("maximum recursion reached")
-	}
+func getEffectiveRoles(r *Role) []*Role {
+	rm := make(map[string]bool)
+	rm[r.ID] = true
 
 	var er []*Role
-
 	er = append(er, r)
+
 	for _, rs := range r.Roles {
-		iter++
-		sr, err := getEffectiveRoles(rs, iter)
-		if err != nil {
-			return nil, err
+		if rm[rs.ID] {
+			continue
 		}
+
+		rm[rs.ID] = true
+
+		sr := getEffectiveRoles(rs)
 
 		er = append(er, sr...)
 	}
 
-	return er, nil
+	return er
 }
 
 // EffectiveRoles returns a flattened slice of all roles embedded in the Role.
-func (r *Role) EffectiveRoles() ([]*Role, error) {
-	return getEffectiveRoles(r, 0)
+func (r *Role) EffectiveRoles() []*Role {
+	return getEffectiveRoles(r)
 }

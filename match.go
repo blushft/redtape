@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/blushft/redtape/strmatch"
+	"github.com/blushft/redtape/match"
 )
 
 // Matcher provides methods to facilitate matching policies to different request elements.
@@ -28,7 +28,7 @@ func (m *simpleMatcher) MatchPolicy(p Policy, def []string, val string) (bool, e
 	}
 
 	for _, h := range def {
-		if strmatch.MatchWildcard(h, val) {
+		if match.Wildcard(h, val) {
 			return true, nil
 		}
 	}
@@ -38,13 +38,10 @@ func (m *simpleMatcher) MatchPolicy(p Policy, def []string, val string) (bool, e
 
 // MatchRole evaluates true when the provided val wildcard matches at least one role in Role#EffectiveRoles.
 func (m *simpleMatcher) MatchRole(r *Role, val string) (bool, error) {
-	er, err := r.EffectiveRoles()
-	if err != nil {
-		return false, err
-	}
+	er := r.EffectiveRoles()
 
 	for _, rr := range er {
-		if strmatch.MatchWildcard(val, rr.ID) {
+		if match.Wildcard(val, rr.ID) {
 			return true, nil
 		}
 	}
@@ -69,10 +66,7 @@ func NewRegexMatcher() Matcher {
 
 // MatchRole evaluates true when the provided val regex matches at least one role in Role#EffectiveRoles.
 func (m *regexMatcher) MatchRole(r *Role, val string) (bool, error) {
-	ef, err := r.EffectiveRoles()
-	if err != nil {
-		return false, err
-	}
+	ef := r.EffectiveRoles()
 
 	def := make([]string, 0, len(ef))
 	for _, rr := range ef {
@@ -90,7 +84,7 @@ func (m *regexMatcher) MatchPolicy(p Policy, def []string, val string) (bool, er
 func (m *regexMatcher) match(def []string, val string) (bool, error) {
 	for _, h := range def {
 		if strings.Count(h, m.startDelim) == 0 {
-			if strmatch.MatchWildcard(h, val) {
+			if match.Wildcard(h, val) {
 				return true, nil
 			}
 
@@ -102,7 +96,7 @@ func (m *regexMatcher) match(def []string, val string) (bool, error) {
 
 		reg, ok := m.pat[h]
 		if !ok {
-			reg, err = strmatch.CompileDelimitedRegex(val, '<', '>')
+			reg, err = match.CompileDelimitedRegex(val, '<', '>')
 			if err != nil {
 				return false, err
 			}
